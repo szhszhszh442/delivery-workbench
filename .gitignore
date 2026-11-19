@@ -1,0 +1,30 @@
+# 本地环境变量和凭据
+.env
+.env.*
+.envrc
+*.env
+*.env.local
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# 本机工具和编辑器配置
+/.agents/
+/.aws/
+/.codex/
+/.ssh/
+/.vscode/
+.idea/
+
+# 日志和系统文件
+*.log
+.DS_Store
+Thumbs.db
+
+# 本地设计、开发计划和研究资料
+/docs/**/*.md
+AGENTS.md

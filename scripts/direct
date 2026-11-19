@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if (( $# == 0 )); then
+  printf 'Usage: %s <command> [args...]\n' "$0" >&2
+  exit 2
+fi
+
+unset http_proxy https_proxy all_proxy ftp_proxy socks_proxy
+unset HTTP_PROXY HTTPS_PROXY ALL_PROXY FTP_PROXY SOCKS_PROXY
+unset GLOBAL_AGENT_HTTP_PROXY GLOBAL_AGENT_HTTPS_PROXY
+export no_proxy='*' NO_PROXY='*'
+
+# pip can also be invoked through "python -m pip".
+unset PIP_PROXY
+export PIP_CONFIG_FILE=/dev/null
+
+command_name=${1##*/}
+case "$command_name" in
+  npm|npx)
+    command_path=$1
+    shift
+    unset npm_config_proxy npm_config_https_proxy NPM_CONFIG_PROXY NPM_CONFIG_HTTPS_PROXY
+    exec "$command_path" --proxy=null --https-proxy=null --noproxy='*' "$@"
+    ;;
+  mvn|mvnw)
+    command_path=$1
+    shift
+    script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+    settings="$script_dir/maven-direct-settings.xml"
+    # Java and Maven can supply proxy settings independently of the shell.
+    unset MAVEN_ARGS MAVEN_OPTS JAVA_TOOL_OPTIONS JDK_JAVA_OPTIONS _JAVA_OPTIONS MVNW_REPOURL
+    export MAVEN_SKIP_RC=true
+    exec "$command_path" -s "$settings" -gs "$settings" -Djava.net.useSystemProxies=false "$@"
+    ;;
+  curl)
+    shift
+    exec curl -q --noproxy '*' "$@"
+    ;;
+  wget)
+    shift
+    exec wget --no-config --no-proxy "$@"
+    ;;
+  *)
+    exec "$@"
+    ;;
+esac
